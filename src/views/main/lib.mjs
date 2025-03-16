@@ -1,9 +1,9 @@
-import { app, BrowserWindow } from 'electron';
-import { addHistory, config } from '../../services/config.mjs';
-import fs from 'fs/promises';
-import path from 'path';
-import { openViewerWindow } from '../image-viewer/lib.mjs';
-import { setMainMenu } from '../../services/main-menu.mjs';
+import { app, BrowserWindow } from "electron";
+import { addHistory, config } from "../../services/config.mjs";
+import fs from "fs/promises";
+import path from "path";
+import { openViewerWindow } from "../image-viewer/lib.mjs";
+import { setMainMenu } from "../../services/main-menu.mjs";
 
 /**
  * @typedef {Object} MainWindowObject
@@ -14,102 +14,103 @@ import { setMainMenu } from '../../services/main-menu.mjs';
 /** @type {MainWindowObject[]} */
 export const mainWindows = [];
 
-export function getMainWindowFromDirPath (path) {
-	return mainWindows.find(x => x.currentPath === path);
+export function getMainWindowFromDirPath(path) {
+  return mainWindows.find((x) => x.currentPath === path);
 }
 
 /**
- * @param {string | undefined} dir 
+ * @param {string | undefined} dir
  */
-export async function openMainWindow (dirPath) {
-	let dir = dirPath;
+export async function openMainWindow(dirPath) {
+  let dir = dirPath;
 
-	if (dir) {
-		for (const w of mainWindows) {
-			if (!w.currentPath) {
-				w.window.webContents.send('dir', dir);
-				return;
-			}
-			if (w.currentPath === dir) {
-				w.window.show();
-				w.window.focus();
-				return;
-			}
-		}
+  if (dir) {
+    for (const w of mainWindows) {
+      if (!w.currentPath) {
+        w.window.webContents.send("dir", dir);
+        return;
+      }
+      //   if (w.currentPath === dir) {
+      //     w.window.show();
+      //     w.window.focus();
+      //     return;
+      //   }
+    }
 
-		const stat = await fs.stat(dir);
+    const stat = await fs.stat(dir);
 
-		if (!stat.isDirectory()) {
-			const image  = path.basename(dirPath);
-			dir = path.dirname(dirPath);
+    if (!stat.isDirectory()) {
+      const image = path.basename(dirPath);
+      dir = path.dirname(dirPath);
 
-			const files = (await fs.readdir(dir,{
-				withFileTypes: true
-			})).map(x => ({
-				name: x.name,
-				isDirectory: x.isDirectory(),
-				parentPath: x.parentPath,
-			}));
+      const files = (
+        await fs.readdir(dir, {
+          withFileTypes: true,
+        })
+      ).map((x) => ({
+        name: x.name,
+        isDirectory: x.isDirectory(),
+        parentPath: x.parentPath,
+      }));
 
-			const index = files.findIndex(x => x.name === image);
+      const index = files.findIndex((x) => x.name === image);
 
-			openViewerWindow(dirPath, files, index);
+      openViewerWindow(dirPath, files, index);
 
-			if (getMainWindowFromDirPath(dir)) {
-				return; // don't open duplicate window.
-			}
-		}
-	}
+      if (getMainWindowFromDirPath(dir)) {
+        return; // don't open duplicate window.
+      }
+    }
+  }
 
-	const win = new BrowserWindow({
-		width: config.defaultBrowserWidth,
-		height: config.defaultBrowserHeight,
-		webPreferences: {
-			preload: import.meta.dirname + '/preload.js',
-		}
-	});
+  const win = new BrowserWindow({
+    width: config.defaultBrowserWidth,
+    height: config.defaultBrowserHeight,
+    webPreferences: {
+      preload: import.meta.dirname + "/preload.js",
+    },
+  });
 
-	if (config.hideMenuBar) {
-		win.setMenuBarVisibility(false);
-		win.autoHideMenuBar = true;
-	}
-	else {
-		win.setMenuBarVisibility(true);
-	}
-	
-	win.loadFile(import.meta.dirname + '/index.html');
+  if (config.hideMenuBar) {
+    win.setMenuBarVisibility(false);
+    win.autoHideMenuBar = true;
+  } else {
+    win.setMenuBarVisibility(true);
+  }
 
-	win.webContents.once('did-finish-load', () => {
-		if (dir) {
-			win.webContents.send('dir', dir);
-		}
-	});
+  win.loadFile(import.meta.dirname + "/index.html");
 
-	win.webContents.ipc.on('current-path', async (e, currentPath) => {
-		dir = currentPath;
-		await addHistory(currentPath);
-		await setMainMenu();
-	})
+  win.webContents.once("did-finish-load", () => {
+    if (dir) {
+      win.webContents.send("dir", dir);
+    }
+  });
 
-	const winObj = {
-		window: win,
-		get currentPath() {
-			return dir;
-		}
-	}
+  win.webContents.ipc.on("current-path", async (e, currentPath) => {
+    dir = currentPath;
+    await addHistory(currentPath);
+    await setMainMenu();
+  });
 
-	mainWindows.push(winObj);
+  const winObj = {
+    window: win,
+    get currentPath() {
+      return dir;
+    },
+  };
 
-	win.on('close', () => {
-		const idx = mainWindows.findIndex(x => x === winObj);
-		if (idx !== -1) {
-			mainWindows.splice(idx,1); // remove closed window
-		}
+  mainWindows.push(winObj);
 
-		if (mainWindows.length === 0) {
-			app.quit();
-		}
-	})
+  win.on("close", () => {
+    const idx = mainWindows.findIndex((x) => x === winObj);
+    if (idx !== -1) {
+      mainWindows.splice(idx, 1); // remove closed window
+    }
 
-	win.on('focus', () => setMainMenu());
+    if (mainWindows.length === 0) {
+      app.quit();
+    }
+  });
+
+  win.on("focus", () => setMainMenu());
 }
