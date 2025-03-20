@@ -3,6 +3,39 @@ import fs from 'fs/promises'
 import path from 'path'
 import { imageInfo } from './lib/image-util.mjs';
 
+const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff"]);
+
+async function getImagesFromDir(dir) {
+    let results = [];
+    let queue = [dir]; // Queue for BFS traversal
+
+    while (queue.length > 0) {
+        const currentDir = queue.shift(); // Get the first directory in queue
+
+        try {
+            const files = await fs.readdir(currentDir, { withFileTypes: true });
+
+            for (const file of files) {
+                const filePath = path.join(currentDir, file.name);
+
+                if (file.isDirectory()) {
+                    queue.push(filePath); // Add subdirectory to queue
+                } else if (IMAGE_EXTENSIONS.has(path.extname(file.name).toLowerCase())) {
+                    // Return only image files
+                    results.push({
+                        name: file.name,
+                        isDirectory: false,
+                        parentPath: currentDir,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(`Error reading directory ${currentDir}:`, error);
+        }
+    }
+    return results;
+}
+
 /** @type {Record<string,AbortController>} */
 let watchAbort = {};
 
@@ -19,6 +52,11 @@ export async function init () {
 			parentPath: x.parentPath,
 		}))
 	});
+
+	ipcMain.handle('dir-images-list', async (e, dirPath) => {
+		return await getImagesFromDir(dirPath);
+	});
+
 
 	ipcMain.handle('path-normalize', async (e, dirPath) => {
 		return path.normalize(dirPath);

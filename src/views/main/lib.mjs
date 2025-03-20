@@ -20,8 +20,9 @@ export function getMainWindowFromDirPath(path) {
 
 /**
  * @param {string | undefined} dir
+ * @param {bool | undefined} showAllPicturesIncludingSubdirectories
  */
-export async function openMainWindow(dirPath) {
+export async function openMainWindow(dirPath, showAllPicturesIncludingSubdirectories) {
   let dir = dirPath;
 
   if (dir) {
@@ -30,11 +31,15 @@ export async function openMainWindow(dirPath) {
         w.window.webContents.send("dir", dir);
         return;
       }
-      //   if (w.currentPath === dir) {
-      //     w.window.show();
-      //     w.window.focus();
-      //     return;
-      //   }
+      if (w.currentPath === dir ) {
+        if(showAllPicturesIncludingSubdirectories== true){
+          w.window.webContents.send("show-all-images", dir);
+          return;
+        }
+        w.window.show();
+        w.window.focus();
+        return;
+      }
     }
 
     const stat = await fs.stat(dir);

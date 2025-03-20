@@ -236,7 +236,7 @@ export async function init() {
         {
           label: "Show all pictures including sub-folders",
           click: () => {
-            openMainWindow(filePath);
+            openMainWindow(filePath, true);
           },
         },
         { type: "separator" },

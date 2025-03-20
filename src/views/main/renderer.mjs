@@ -89,6 +89,11 @@ async function main () {
 		handleOpenDir({files, path: dirPath});
 	});
 
+	api.showAllImages(async (dirPath) => {
+		const files = await api.listImagesDir(dirPath);
+		handleOpenDir({files, path: dirPath});
+	});
+
 	api.thumbnailListener(async (imgPath) => {
 		const img = imgCache[imgPath].getElementsByTagName('img')[0];
 

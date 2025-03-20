@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('api', {
 
 		return null;
 	},
+	listImagesDir: async (path) => {
+		return await ipcRenderer.invoke('dir-images-list', path);
+	},
 	listDir: async (path) => {
 		return await ipcRenderer.invoke('dir-list', path);
 	},
@@ -39,6 +42,10 @@ contextBridge.exposeInMainWorld('api', {
 	},
 	dirListener: (callback) => {
 		ipcRenderer.on('dir', (e, dirPath) => {
+			callback(dirPath);
+		});
+	},
+	showAllImages: (callback)=>{ipcRenderer.on('show-all-images', (event, dirPath) => {
 			callback(dirPath);
 		});
 	},
