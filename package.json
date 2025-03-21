@@ -7,9 +7,11 @@
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "rebuild": "electron-rebuild",
     "build-mac": "electron-builder --mac",
     "build-deb": "electron-builder --linux deb --x64",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "docker-dist": "SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install && npm run rebuild && npm run dist"
   },
   "author": "Adly Abdullah <slebetman@gmail.com>, Alex Woon<alexw005>",
   "license": "BSD-2-Clause",
@@ -62,20 +64,23 @@
       "asarUnpack": [
         "**/node_modules/sharp/**/*",
         "**/node_modules/@img/**/*"
-        ]
+      ],
+      "target": "nsis",
+      "arch": "x64"
     },
     "dmg": {
       "background": "icons/bg.tiff"
     }
   },
   "devDependencies": {
-    "electron": "^32.1.0",
-    "electron-builder": "^25.0.5"
+    "electron": "32.1.0",
+    "electron-builder": "25.0.5",
+    "electron-rebuild": "3.2.9"
   },
   "dependencies": {
-    "open": "^10.1.0",
-    "sharp": "^0.33.5",
-    "trash": "^9.0.0",
-    "xdg-portable": "^10.6.0"
+    "open": "10.1.0",
+    "sharp": "0.33.5",
+    "trash": "9.0.0",
+    "xdg-portable": "10.6.0"
   }
 }
