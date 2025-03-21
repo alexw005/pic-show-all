@@ -8,9 +8,10 @@
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-mac": "electron-builder --mac",
-    "build-deb": "electron-builder --linux deb --x64"
+    "build-deb": "electron-builder --linux deb --x64",
+    "dist": "electron-builder"
   },
-  "author": "Adly Abdullah <slebetman@gmail.com>",
+  "author": "Adly Abdullah <slebetman@gmail.com>, Alex Woon<alexw005>",
   "license": "BSD-2-Clause",
   "build": {
     "electronLanguages": [
@@ -55,6 +56,13 @@
         "**/node_modules/sharp/**/*",
         "**/node_modules/@img/**/*"
       ]
+    },
+    "win": {
+      "asar": true,
+      "asarUnpack": [
+        "**/node_modules/sharp/**/*",
+        "**/node_modules/@img/**/*"
+        ]
     },
     "dmg": {
       "background": "icons/bg.tiff"
